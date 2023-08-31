@@ -15,14 +15,14 @@ namespace DiscountModule
 		{
 			Providers = new List<Provider>
 			{
-				new (ProviderType.LP, new Dictionary<PackageSizeType, decimal>
+				new ("LP", new Dictionary<PackageSizeType, decimal>
 				{
 					{ PackageSizeType.S, 1.50m },
 					{ PackageSizeType.M, 4.90m },
 					{ PackageSizeType.L, 6.90m }
 				}),
 
-				new (ProviderType.MR, new Dictionary<PackageSizeType, decimal>
+				new ("MR", new Dictionary<PackageSizeType, decimal>
 				{
 					{ PackageSizeType.S, 2.00m },
 					{ PackageSizeType.M, 3.00m },

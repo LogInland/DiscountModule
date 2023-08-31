@@ -16,13 +16,12 @@ var lines = FileService.ReadLines("Input.txt");
 
 var providers = ProviderConfiguration.Instance.Providers;
 
-
 ruleEngine.RegisterRule(new SmallPackageLowestPriceRule(providers));
 ruleEngine.RegisterRule(new MonthlyThirdLargeShipmentRule());
 
 foreach (var line in lines)
 {
-	var shipment = ShipmentParser.ParseLine(line);
+	var shipment = ShipmentParser.ParseLine(line, providers);
 
 	if (shipment == null)
 	{
@@ -30,7 +29,7 @@ foreach (var line in lines)
 		continue;
 	}
 
-	shipment.Price = providers.Find(p => p.Name == shipment.ProviderType).GetPrice(shipment.PackageSize);
+	shipment.Price = providers.Find(p => p.Name == shipment.ShipmentProvider.Name).GetPrice(shipment.PackageSize);
 
 	shipments.Add(shipment);
 
@@ -39,6 +38,4 @@ foreach (var line in lines)
 	ruleEngine.ApplyRule(shipment, discountPool);
 
 	Console.WriteLine(ShipmentParser.ConvertToLine(shipment));
-
 }
-

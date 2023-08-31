@@ -4,7 +4,7 @@
 	{
 		public DateTime Date { get; set; }
 		public PackageSizeType PackageSize { get; set; }
-		public ProviderType ProviderType { get; set; }
+		public Provider ShipmentProvider { get; set; }
 		public decimal Price { get; set; }
 		private decimal _discount;
 		public decimal Discount
@@ -19,11 +19,11 @@
 			}
 		}
 
-		public Shipment(DateTime date, PackageSizeType packageSize, ProviderType providerType)
+		public Shipment(DateTime date, PackageSizeType packageSize, Provider provider)
 		{
 			Date = date;
 			PackageSize = packageSize;
-			ProviderType = providerType;
+			ShipmentProvider = provider;
 		}
 	}
 }

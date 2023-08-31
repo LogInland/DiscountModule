@@ -19,7 +19,7 @@
 			if (shipment.PackageSize == PackageSizeType.S)
 			{
 				decimal currentPrice = shipment.Price;
-				
+
 				if (currentPrice > _lowestPrice)
 				{
 					shipment.Discount = discountPool.WithdrawDiscount(currentPrice - _lowestPrice);
@@ -44,14 +44,13 @@
 					_shipmentCount = 0;
 				}
 
-				if (shipment.PackageSize == PackageSizeType.L && shipment.ProviderType == ProviderType.LP)
+				if (shipment.PackageSize == PackageSizeType.L && shipment.ShipmentProvider.Name == "LP")
 				{
 					_shipmentCount++;
 
 					if (_shipmentCount == _DISCOUNTED_SHIPMENT)
 					{
 						shipment.Discount = discountPool.WithdrawDiscount(shipment.Price);
-						
 					}
 				}
 			}
@@ -59,10 +58,8 @@
 			{
 				_lastDiscountDate = shipment.Date;
 			}
-
 		}
 	}
-
 
 	public class RuleEngine
 	{

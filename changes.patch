@@ -1,0 +1,202 @@
+diff --git a/DiscountModule/DiscountRule.cs b/DiscountModule/DiscountRule.cs
+index fabd05b..ae7f0f9 100644
+--- a/DiscountModule/DiscountRule.cs
++++ b/DiscountModule/DiscountRule.cs
+@@ -19,7 +19,7 @@
+ 			if (shipment.PackageSize == PackageSizeType.S)
+ 			{
+ 				decimal currentPrice = shipment.Price;
+-				
++
+ 				if (currentPrice > _lowestPrice)
+ 				{
+ 					shipment.Discount = discountPool.WithdrawDiscount(currentPrice - _lowestPrice);
+@@ -44,14 +44,13 @@
+ 					_shipmentCount = 0;
+ 				}
+ 
+-				if (shipment.PackageSize == PackageSizeType.L && shipment.ProviderType == ProviderType.LP)
++				if (shipment.PackageSize == PackageSizeType.L && shipment.ShipmentProvider.Name == "LP")
+ 				{
+ 					_shipmentCount++;
+ 
+ 					if (_shipmentCount == _DISCOUNTED_SHIPMENT)
+ 					{
+ 						shipment.Discount = discountPool.WithdrawDiscount(shipment.Price);
+-						
+ 					}
+ 				}
+ 			}
+@@ -59,11 +58,9 @@
+ 			{
+ 				_lastDiscountDate = shipment.Date;
+ 			}
+-
+ 		}
+ 	}
+ 
+-
+ 	public class RuleEngine
+ 	{
+ 		private List<IDiscountRule> rules = new();
+diff --git a/DiscountModule/FileService.cs b/DiscountModule/FileService.cs
+index e7b3d6e..f3fa300 100644
+--- a/DiscountModule/FileService.cs
++++ b/DiscountModule/FileService.cs
+@@ -18,7 +18,7 @@ namespace DiscountModule
+ 
+ 	public static class ShipmentParser
+ 	{
+-		public static Shipment ParseLine(string line)
++		public static Shipment ParseLine(string line, List<Provider> providers)
+ 		{
+ 			string[] parts = line.Split(' ');
+ 
+@@ -39,11 +39,11 @@ namespace DiscountModule
+ 				PackageSizeType size = Enum.TryParse(parts[1], out PackageSizeType parsedSize)
+ 					? parsedSize
+ 					: PackageSizeType.Unknown;
+-				ProviderType provider = Enum.TryParse(parts[2], out ProviderType parseProviderType)
+-					? parseProviderType
+-					: ProviderType.Unknown;
+ 
+-				if (size != PackageSizeType.Unknown && provider != ProviderType.Unknown)
++				string providerName = parts[2];
++				var provider = providers.Find(p => p.Name == providerName);
++
++				if (size != PackageSizeType.Unknown && provider != null)
+ 				{
+ 					return new Shipment(date, size, provider);
+ 				}
+@@ -58,7 +58,7 @@ namespace DiscountModule
+ 
+ 		public static string ConvertToLine(Shipment shipment)
+ 		{
+-			return $"{shipment.Date:yyy-MM-dd} {shipment.PackageSize} {shipment.ProviderType} {shipment.Price} {shipment.Discount}";
++			return $"{shipment.Date:yyy-MM-dd} {shipment.PackageSize} {shipment.ShipmentProvider.Name} {shipment.Price} {shipment.Discount}";
+ 		}
+ 	}
+ }
+diff --git a/DiscountModule/Program.cs b/DiscountModule/Program.cs
+index e3eb2fd..7738b8f 100644
+--- a/DiscountModule/Program.cs
++++ b/DiscountModule/Program.cs
+@@ -16,13 +16,12 @@ var lines = FileService.ReadLines("Input.txt");
+ 
+ var providers = ProviderConfiguration.Instance.Providers;
+ 
+-
+ ruleEngine.RegisterRule(new SmallPackageLowestPriceRule(providers));
+ ruleEngine.RegisterRule(new MonthlyThirdLargeShipmentRule());
+ 
+ foreach (var line in lines)
+ {
+-	var shipment = ShipmentParser.ParseLine(line);
++	var shipment = ShipmentParser.ParseLine(line, providers);
+ 
+ 	if (shipment == null)
+ 	{
+@@ -30,7 +29,7 @@ foreach (var line in lines)
+ 		continue;
+ 	}
+ 
+-	shipment.Price = providers.Find(p => p.Name == shipment.ProviderType).GetPrice(shipment.PackageSize);
++	shipment.Price = providers.Find(p => p.Name == shipment.ShipmentProvider.Name).GetPrice(shipment.PackageSize);
+ 
+ 	shipments.Add(shipment);
+ 
+@@ -39,6 +38,4 @@ foreach (var line in lines)
+ 	ruleEngine.ApplyRule(shipment, discountPool);
+ 
+ 	Console.WriteLine(ShipmentParser.ConvertToLine(shipment));
+-
+ }
+-
+diff --git a/DiscountModule/Provider.cs b/DiscountModule/Provider.cs
+index 7f14d8f..334d147 100644
+--- a/DiscountModule/Provider.cs
++++ b/DiscountModule/Provider.cs
+@@ -2,10 +2,10 @@
+ {
+ 	public class Provider
+ 	{
+-		public ProviderType Name { get; private set; }
++		public string Name { get; private set; }
+ 		public Dictionary<PackageSizeType, decimal> Pricing { get; private set; }
+ 
+-		public Provider(ProviderType name, Dictionary<PackageSizeType, decimal> pricing)
++		public Provider(string name, Dictionary<PackageSizeType, decimal> pricing)
+ 		{
+ 			Name = name;
+ 			Pricing = pricing;
+@@ -21,7 +21,6 @@
+ 			{
+ 				throw new Exception("Price for the given sizeType not found.");
+ 			}
+-
+ 		}
+ 	}
+ }
+diff --git a/DiscountModule/ProviderConfiguration.cs b/DiscountModule/ProviderConfiguration.cs
+index 346b54a..c3b8ff2 100644
+--- a/DiscountModule/ProviderConfiguration.cs
++++ b/DiscountModule/ProviderConfiguration.cs
+@@ -15,14 +15,14 @@ namespace DiscountModule
+ 		{
+ 			Providers = new List<Provider>
+ 			{
+-				new (ProviderType.LP, new Dictionary<PackageSizeType, decimal>
++				new ("LP", new Dictionary<PackageSizeType, decimal>
+ 				{
+ 					{ PackageSizeType.S, 1.50m },
+ 					{ PackageSizeType.M, 4.90m },
+ 					{ PackageSizeType.L, 6.90m }
+ 				}),
+ 
+-				new (ProviderType.MR, new Dictionary<PackageSizeType, decimal>
++				new ("MR", new Dictionary<PackageSizeType, decimal>
+ 				{
+ 					{ PackageSizeType.S, 2.00m },
+ 					{ PackageSizeType.M, 3.00m },
+diff --git a/DiscountModule/ProviderType.cs b/DiscountModule/ProviderType.cs
+deleted file mode 100644
+index 8cefae6..0000000
+--- a/DiscountModule/ProviderType.cs
++++ /dev/null
+@@ -1,9 +0,0 @@
+-﻿namespace DiscountModule
+-{
+-	public enum ProviderType
+-	{
+-		LP,
+-		MR,
+-		Unknown
+-	}
+-}
+diff --git a/DiscountModule/Shipment.cs b/DiscountModule/Shipment.cs
+index 240501e..b199f69 100644
+--- a/DiscountModule/Shipment.cs
++++ b/DiscountModule/Shipment.cs
+@@ -4,7 +4,7 @@
+ 	{
+ 		public DateTime Date { get; set; }
+ 		public PackageSizeType PackageSize { get; set; }
+-		public ProviderType ProviderType { get; set; }
++		public Provider ShipmentProvider { get; set; }
+ 		public decimal Price { get; set; }
+ 		private decimal _discount;
+ 		public decimal Discount
+@@ -19,11 +19,11 @@
+ 			}
+ 		}
+ 
+-		public Shipment(DateTime date, PackageSizeType packageSize, ProviderType providerType)
++		public Shipment(DateTime date, PackageSizeType packageSize, Provider provider)
+ 		{
+ 			Date = date;
+ 			PackageSize = packageSize;
+-			ProviderType = providerType;
++			ShipmentProvider = provider;
+ 		}
+ 	}
+ }

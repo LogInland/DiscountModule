@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscountModule", "DiscountModule\DiscountModule.csproj", "{81F3BD37-7FA6-4A2B-8C1D-E770C88CFEC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscountModule", "DiscountModule\DiscountModule.csproj", "{81F3BD37-7FA6-4A2B-8C1D-E770C88CFEC2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscountModuleTests", "DiscountModuleTests\DiscountModuleTests.csproj", "{646A4A3E-8E91-4F23-94B2-145708FDE390}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{81F3BD37-7FA6-4A2B-8C1D-E770C88CFEC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81F3BD37-7FA6-4A2B-8C1D-E770C88CFEC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81F3BD37-7FA6-4A2B-8C1D-E770C88CFEC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{646A4A3E-8E91-4F23-94B2-145708FDE390}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{646A4A3E-8E91-4F23-94B2-145708FDE390}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{646A4A3E-8E91-4F23-94B2-145708FDE390}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{646A4A3E-8E91-4F23-94B2-145708FDE390}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

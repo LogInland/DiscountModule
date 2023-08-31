@@ -2,10 +2,10 @@
 {
 	public class Provider
 	{
-		public ProviderType Name { get; private set; }
+		public string Name { get; private set; }
 		public Dictionary<PackageSizeType, decimal> Pricing { get; private set; }
 
-		public Provider(ProviderType name, Dictionary<PackageSizeType, decimal> pricing)
+		public Provider(string name, Dictionary<PackageSizeType, decimal> pricing)
 		{
 			Name = name;
 			Pricing = pricing;
@@ -21,7 +21,6 @@
 			{
 				throw new Exception("Price for the given sizeType not found.");
 			}
-
 		}
 	}
 }

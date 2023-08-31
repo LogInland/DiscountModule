@@ -18,7 +18,7 @@ namespace DiscountModule
 
 	public static class ShipmentParser
 	{
-		public static Shipment ParseLine(string line)
+		public static Shipment ParseLine(string line, List<Provider> providers)
 		{
 			string[] parts = line.Split(' ');
 
@@ -39,11 +39,11 @@ namespace DiscountModule
 				PackageSizeType size = Enum.TryParse(parts[1], out PackageSizeType parsedSize)
 					? parsedSize
 					: PackageSizeType.Unknown;
-				ProviderType provider = Enum.TryParse(parts[2], out ProviderType parseProviderType)
-					? parseProviderType
-					: ProviderType.Unknown;
 
-				if (size != PackageSizeType.Unknown && provider != ProviderType.Unknown)
+				string providerName = parts[2];
+				var provider = providers.Find(p => p.Name == providerName);
+
+				if (size != PackageSizeType.Unknown && provider != null)
 				{
 					return new Shipment(date, size, provider);
 				}
@@ -58,7 +58,9 @@ namespace DiscountModule
 
 		public static string ConvertToLine(Shipment shipment)
 		{
-			return $"{shipment.Date:yyy-MM-dd} {shipment.PackageSize} {shipment.ProviderType} {shipment.Price} {shipment.Discount}";
+			string discount = (shipment.Discount <= 0) ? "-" : shipment.Discount.ToString();
+
+			return $"{shipment.Date:yyy-MM-dd} {shipment.PackageSize} {shipment.ShipmentProvider.Name} {shipment.Price} {discount}";
 		}
 	}
 }
